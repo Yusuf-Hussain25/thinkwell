@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Thinkwell
 
-## Getting Started
+**Your AI thinking partner.** Thinkwell is a full-stack AI chat app built with Next.js 15. Sign in, start conversations, and get markdown answers with highlighted code. Every chat is saved to your account. Replies come from the DeepSeek API.
 
-First, run the development server:
+> 🚧 **v2.0 redesign in progress.** This repo currently holds the rebranded 1.x app. A 2026 redesign is planned next: new design system, light/dark theme, demo data and a configurable AI provider.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Features
+
+- **Auth with Clerk.** Sign in with email or social login; every API route is scoped to the signed-in user's own chats.
+- **Saved conversations.** Chats are stored in MongoDB, listed in the sidebar, and can be renamed or deleted.
+- **AI replies** from DeepSeek (`deepseek-chat`) through the OpenAI-compatible SDK.
+- **Rich messages.** Markdown rendering, Prism.js code highlighting and one-click copy.
+- **User sync.** A Clerk webhook (verified with Svix) creates, updates and deletes users in MongoDB.
+- **Toasts** for errors and actions (react-hot-toast).
+
+## Tech stack
+
+| Layer | Tech |
+|---|---|
+| Framework | Next.js 15 (App Router, Route Handlers), React 19 |
+| Styling | Tailwind CSS v4 |
+| Auth | Clerk (`@clerk/nextjs`) + Svix webhooks |
+| Database | MongoDB + Mongoose |
+| AI | DeepSeek API via the `openai` SDK |
+| Rendering | react-markdown, Prism.js |
+
+## Project structure
+
+```
+app/
+  api/chat/{create,get,rename,delete,ai}/route.js   chat CRUD + AI completion
+  api/clerk/route.js                                 Clerk → MongoDB user webhook
+  layout.js, page.jsx, globals.css                   shell and chat screen
+components/   Sidebar, ChatLabel, Message, PromptBox
+context/      AppContext (user, chats, selected chat)
+models/       Chat, User (Mongoose)
+config/db.js  cached MongoDB connection
+middleware.ts Clerk middleware
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Getting started
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+**Prerequisites:** Node.js 20+ and MongoDB (local or Atlas).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+git clone https://github.com/Yusuf-Hussain25/thinkwell.git
+cd thinkwell
+npm install
+cp .env.example .env   # then fill in the values
+npm run dev            # http://localhost:3000
+```
 
-## Learn More
+### Environment variables
 
-To learn more about Next.js, take a look at the following resources:
+Every key is documented in [`.env.example`](.env.example):
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Key | Where to get it |
+|---|---|
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY` | Clerk dashboard → API keys. **Leave both empty in local dev** and Clerk runs in keyless mode with temporary keys. |
+| `SIGNING_SECRET` | Clerk dashboard → Webhooks → endpoint `https://<domain>/api/clerk` |
+| `MONGODB_URI` | `mongodb://127.0.0.1:27017/thinkwell` locally, or a MongoDB Atlas connection string |
+| `DEEPSEEK_API_KEY` | https://platform.deepseek.com/api_keys |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Without `DEEPSEEK_API_KEY` the app runs and saves chats, but AI replies fail.
 
-## Deploy on Vercel
+## Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Deploy on Vercel: import the repo, add the environment variables above, and point the Clerk webhook at `https://<your-domain>/api/clerk`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Author
+
+**Yusuf Hussain** · https://github.com/Yusuf-Hussain25
